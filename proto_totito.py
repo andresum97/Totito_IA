@@ -1,5 +1,6 @@
 import socketio
 import numpy as np
+import random
 
 sio = socketio.Client()
 
@@ -9,9 +10,12 @@ class infoGame:
         self.tournament_id = ""
         self.game_id = ""
         self.board = []
+        self.game_finished = False
+        self.player_turn_id = 0
 
 @sio.on('connect')
 def onConnect():
+    print('Connect user: '+infoGame.username)
     sio.emit('signin',{
         'user_name': infoGame.username,
         'tournament_id': infoGame.tournament_id,
@@ -28,19 +32,22 @@ def disconnect():
 
 @sio.on('ready')
 def ready(server):
-    typeLine = int(input("0: Horizontal\n 1: Vertical\n"))
-    position = int(input("0-29: "))
-
-    while int(infoGame.board[typeLine][position] != 99):
-        typeLine = int(input("0: Horizontal\n 1: Vertical\n"))
-        position = int(input("0-29: "))
-        
+    movement = []
+    infoGame.game_id = server['game_id']
+    infoGame.player_turn_id = server['player_turn_id']
+    infoGame.game_finished = False
+    typeLine = random.randint(0,1)#int(input("0: Horizontal\n 1: Vertical\n"))
+    position = random.randint(0,29)#int(input("0-29: "))
+    #while int(infoGame.board[typeLine][position] != 99):
+     #   typeLine = int(input("0: Horizontal\n 1: Vertical\n"))
+      #  position = int(input("0-29: "))
+    movement = [typeLine,position]
     
     sio.emit('play',{
-        'player_turn_id':server.player_turn_id,
+        'player_turn_id':infoGame.player_turn_id,
         'tournament_id': infoGame.tournament_id,
         'game_id': infoGame.game_id,
-        'movement': (position, typeLine)
+        'movement': movement
     })
 
 def reset():
