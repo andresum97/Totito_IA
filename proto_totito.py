@@ -39,12 +39,9 @@ def ready(server):
     infoGame.game_finished = False
     typeLine = random.randint(0,1)#int(input("0: Horizontal\n 1: Vertical\n"))
     position = random.randint(0,29)#int(input("0-29: "))
-    while int(infoGame.board[typeLine][position]) != 99:
+    while int(server['board'][typeLine][position]) != 99:
         typeLine = random.randint(0, 1)
         position = random.randint(0, 29)
-    #while int(infoGame.board[typeLine][position] != 99):
-     #   typeLine = int(input("0: Horizontal\n 1: Vertical\n"))
-      #  position = int(input("0-29: "))
     movement = [typeLine,position]
 
     print("Jugada: " + str(movement[0]) + ", " + str(movement[1]))
