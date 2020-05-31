@@ -60,6 +60,7 @@ def minimax(board,pos,depth,alpha,beta,isMax):
                     board[i][j] = 99
 
                     bestScore = max(bestScore, scoreMax)
+                    print("El best score ",str(bestScore))
                     alpha = max(alpha, scoreMax)
                     if beta <= alpha:
                         break
@@ -73,6 +74,7 @@ def minimax(board,pos,depth,alpha,beta,isMax):
                     scoreMin = minimax(board, (i,j), depth-1,alpha,beta,True)
                     board[i][j] = 99
                     worstScore = min(worstScore, scoreMin)
+                    print("El worst score ",str(worstScore))
                     beta = min(beta,scoreMin)
                     if beta <= alpha:
                         break
@@ -94,13 +96,13 @@ def bestMove(board):
 
 def probar(move):
 
-    if movement == []:
+    if move == []:
         return False
     
-    if movement[0] < 0 or movement[0] > 1:
+    if move[0] < 0 or move[0] > 1:
         return False
 
-    if movement[1] < 0 or movement[1] > 29:
+    if move[1] < 0 or move[1] > 29:
         return False
 
     return True
@@ -136,19 +138,24 @@ def disconnect():
 
 @sio.on('ready')
 def ready(server):
+    print("Llego al ready")
     movement = []
     infoGame.game_id = server['game_id']
     infoGame.player_turn_id = server['player_turn_id']
+    infoGame.board = server['board']
     infoGame.game_finished = False
     while probar(movement) != True:
+        print("llego al ciclo")
         move = bestMove(infoGame.board)
+        movement = [move[0],move[1]]
+        print("move es igual"+str(movement[0])+","+str(movement[1]))
+	
     #typeLine = random.randint(0,1)#int(input("0: Horizontal\n 1: Vertical\n"))
     #position = random.randint(0,29)#int(input("0-29: "))
     # while int(server['board'][typeLine][position]) != 99:
     #     typeLine = random.randint(0, 1)
     #     position = random.randint(0, 29)
     #movement = [typeLine,position]
-    movement = [move[0],move[1]]
 
     print("Jugada: " + str(movement[0]) + ", " + str(movement[1]))
     
