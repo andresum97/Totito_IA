@@ -5,7 +5,7 @@ import math
 
 sio = socketio.Client()
 
-def heuristica(boardOriginal,playerN,move):
+def heuristica(boardOriginal,playerN,move, player):
     board = list(map(list,boardOriginal))
     EMPTY = 99
     FILL = 0
@@ -44,9 +44,11 @@ def heuristica(boardOriginal,playerN,move):
             contador = contador + 1
             acumulador = 0
         
-    return punteoFinal - punteoInicial
+    return punteoFinal - punteoInicial if player else (-1)*(punteoFinal - punteoInicial)
 
-def minimax(board,pos,depth,alpha,beta,isMax):
+def minimax(board,pos,depth,play,alpha,beta,isMax):
+    playerPlaying = play if play else (play % 2) + 1
+    
     if depth == 0 or 99 not in np.asarray(board).reshape(-1):
         return heuristica(infoGame.board,infoGame.player_turn_id, pos)
     
@@ -56,7 +58,7 @@ def minimax(board,pos,depth,alpha,beta,isMax):
             for j in range(0,30):
                 if board[i][j] == 99:
                     board[i][j] = infoGame.player_turn_id
-                    scoreMax = minimax(board, (i,j),depth-1, alpha, beta, False)
+                    scoreMax = minimax(board, (i,j),depth-1, play,alpha, beta, False)
                     board[i][j] = 99
 
                     bestScore = max(bestScore, scoreMax)
@@ -71,7 +73,7 @@ def minimax(board,pos,depth,alpha,beta,isMax):
             for j in range(0,30):
                 if board[i][j] == 99:
                     board[i][j] == infoGame.oponent_turn_id
-                    scoreMin = minimax(board, (i,j), depth-1,alpha,beta,True)
+                    scoreMin = minimax(board, (i,j), depth-1,play,alpha,beta,True)
                     board[i][j] = 99
                     worstScore = min(worstScore, scoreMin)
                     print("El worst score ",str(worstScore))
@@ -81,13 +83,13 @@ def minimax(board,pos,depth,alpha,beta,isMax):
         return worstScore
                     
 
-def bestMove(board):
+def bestMove(board,myId):
     bestScore = -math.inf
     for i in range(0,2):
         for j in range(0,30):
             if board[i][j] == 99:
                 board[i][j] = infoGame.player_turn_id
-                score = minimax(board,(i,j),3,-math.inf,math.inf,False)
+                score = minimax(board,(i,j),3,int(myId),-math.inf,math.inf,False)
                 board[i][j] = 99
                 if(score > bestScore):
                     bestScore = score
@@ -146,7 +148,7 @@ def ready(server):
     infoGame.game_finished = False
     while probar(movement) != True:
         print("llego al ciclo")
-        move = bestMove(infoGame.board)
+        move = bestMove(infoGame.board, infoGame.player_turn_id)
         movement = [move[0],move[1]]
         print("move es igual"+str(movement[0])+","+str(movement[1]))
 	
