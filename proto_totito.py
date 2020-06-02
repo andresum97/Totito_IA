@@ -4,7 +4,7 @@ import random
 import math
 
 sio = socketio.Client()
-
+#Metodo para verificar movimientos disponibles en el tablero
 def possibleMoves(board):
     movements = []
     for i in range(len(board)):
@@ -13,60 +13,9 @@ def possibleMoves(board):
                 movements.append((i,j))
     return movements
 
-def doMove(oldBoard, move, playerNumber, isMe):
-    EMPTY = 99
-    FILL = 0
-    FILLEDP11 = 1
-    FILLEDP12 = 2
-    FILLEDP21 = -1
-    FILLEDP22 = -2
-    N = 6
-
-    board = list(map(list, oldBoard))
-
-    punteoInicial = 0
-    punteoFinal = 0
-
-    acumulador = 0
-    contador = 0
-
-    for i in range(len(board[0])):
-        if ((i + 1) % N) != 0:
-            if board[0][i] != EMPTY and board[0][i + 1] != EMPTY and board[1][contador + acumulador] != EMPTY and board[1][contador + acumulador + 1] != EMPTY:
-                punteoInicial = punteoInicial + 1
-            acumulador = acumulador + N
-        else:
-            contador = contador + 1
-            acumulador = 0
-
-    board[move[0]][move[1]] = FILL
-
-    acumulador = 0
-    contador = 0
-
-    for i in range(len(board[0])):
-        if ((i + 1) % N) != 0:
-            if board[0][i] != EMPTY and board[0][i + 1] != EMPTY and board[1][contador + acumulador] != EMPTY and board[1][contador + acumulador + 1] != EMPTY:
-                punteoFinal = punteoFinal + 1
-            acumulador = acumulador + N
-        else:
-            contador = contador + 1
-            acumulador = 0
-    
-    if punteoInicial < punteoFinal:
-        if playerNumber == 1:
-            if (punteoFinal - punteoInicial) == 2:
-                board[move[0]][move[1]] = FILLEDP12
-            elif (punteoFinal - punteoInicial) == 1:
-                board[move[0]][move[1]] = FILLEDP11
-        elif playerNumber == 2:
-            if (punteoFinal - punteoInicial) == 2:
-                board[move[0]][move[1]] = FILLEDP22
-            elif (punteoFinal - punteoInicial) == 1:
-                board[move[0]][move[1]] = FILLEDP21
-    
-    return (board, punteoFinal - punteoInicial) if isMe else (board, (-1) * (punteoFinal - punteoInicial))
-
+#Metodo para calcular Heuristica, basado en el contador de puntos del arbitro del server
+#y revisa la cantidad de cuadros, antes y luego de realizar una jugada y muestra los puntos
+#que pueden ser 0,+-1,+-2. La heuristica se basa en la cantidad de puntos realizados en la jugada
 def heuristica(boardOriginal,move,playerN, player):
     board = list(map(list,boardOriginal))
     EMPTY = 99
@@ -82,6 +31,7 @@ def heuristica(boardOriginal,move,playerN, player):
 
     acumulador = 0
     contador = 0
+    resultado = 0
 
     for i in range(len(board[0])):
         if ((i+1)% N) != 0:
@@ -117,17 +67,27 @@ def heuristica(boardOriginal,move,playerN, player):
                 board[move[0]][move[1]] = FILLEDP22
             elif (punteoFinal - punteoInicial) == 1:
                 board[move[0]][move[1]] = FILLEDP21
+    if(player):
+        resultado = punteoFinal - punteoInicial
+    else:
+        resultado = (-1)*(punteoFinal - punteoInicial)
 
-    return punteoFinal - punteoInicial if player else (-1)*(punteoFinal - punteoInicial)
+    return resultado
 
+#Algoritmo de minimax con alpha,beta y lookahead de 2
 def minimax(board,pos,depth,play,myId,alpha,beta):
-    playerPlaying = myId if play else (myId % 2) + 1
-    
+    #Verificacion de si esta jugando max o min, (yo o el contrincante)
+    if(play):
+        playerPlaying = myId
+    else:
+        playerPlaying = (myId%2)+1
+    #Ultimo return cuando llega a la raiz de arbol
     if depth == 0 or 99 not in np.asarray(board).reshape(-1):
         return heuristica(board,pos,playerPlaying,not play)
     
-    board, _ = doMove(board,pos,playerPlaying, play)
+    #Recibe las posiciones en donde se pueden realizar jugadas
     possibleMove = possibleMoves(board)
+    #Max
     if(play):
         bestScore = -math.inf
         
@@ -139,6 +99,7 @@ def minimax(board,pos,depth,play,myId,alpha,beta):
                  break
         board[pos[0]][pos[1]] = 99
         return bestScore
+    #Min
     else:
         worstScore = math.inf
         for move in possibleMove:
@@ -149,7 +110,7 @@ def minimax(board,pos,depth,play,myId,alpha,beta):
         board[pos[0]][pos[1]] = 99
         return worstScore
                     
-
+#Metodo que obtiene las mejores jugadas y elige una de forma aleatoria
 def bestMove(board,myId,lookahead):
     bestScore = -math.inf
     possibleM = []
@@ -167,19 +128,7 @@ def bestMove(board,myId,lookahead):
 
     return random.choice(possibleM)
 
-def probar(move):
-
-    if move == []:
-        return False
-    
-    if move[0] < 0 or move[0] > 1:
-        return False
-
-    if move[1] < 0 or move[1] > 29:
-        return False
-
-    return True
-
+#Metodo para dibujar el tablero
 def humanBoard(board):
     resultado = ''
     acumulador = 0
@@ -217,6 +166,7 @@ def humanBoard(board):
 
     return resultado
 
+#============================================================================================
 class infoGame:
     def __init__(self):
         self.username = ""
@@ -262,18 +212,7 @@ def ready(server):
     print(humanBoard(server['board']))
     move = bestMove(infoGame.board, infoGame.player_turn_id,2)
     movement = [move[0],move[1]]
-    #while probar(movement) != True:
-     #   print("llego al ciclo")
-      #  move = bestMove(infoGame.board, infoGame.player_turn_id)
-       # movement = [move[0],move[1]]
-        #print("move es igual"+str(movement[0])+","+str(movement[1]))
-	
-    #typeLine = random.randint(0,1)#int(input("0: Horizontal\n 1: Vertical\n"))
-    #position = random.randint(0,29)#int(input("0-29: "))
-    # while int(server['board'][typeLine][position]) != 99:
-    #     typeLine = random.randint(0, 1)
-    #     position = random.randint(0, 29)
-    #movement = [typeLine,position]
+    print("Jugada: "+str(movement))
     
     sio.emit('play',{
         'player_turn_id':infoGame.player_turn_id,
