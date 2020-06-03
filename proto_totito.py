@@ -56,17 +56,6 @@ def heuristica(boardOriginal,move,playerN, player):
             contador = contador + 1
             acumulador = 0
      
-    if punteoInicial < punteoFinal:
-        if playerN == 1:
-            if (punteoFinal - punteoInicial) == 2:
-                board[move[0]][move[1]] = FILLEDP12
-            elif (punteoFinal - punteoInicial) == 1:
-                board[move[0]][move[1]] = FILLEDP11
-        elif playerN == 2:
-            if (punteoFinal - punteoInicial) == 2:
-                board[move[0]][move[1]] = FILLEDP22
-            elif (punteoFinal - punteoInicial) == 1:
-                board[move[0]][move[1]] = FILLEDP21
     if(player):
         resultado = punteoFinal - punteoInicial
     else:
@@ -81,11 +70,13 @@ def minimax(board,pos,depth,play,myId,alpha,beta):
         playerPlaying = myId
     else:
         playerPlaying = (myId%2)+1
+    valorH =  heuristica(board,pos,playerPlaying, not play)
     #Ultimo return cuando llega a la raiz de arbol
-    if depth == 0 or 99 not in np.asarray(board).reshape(-1):
+    if depth == 0 or valorH != 0:
         return heuristica(board,pos,playerPlaying,not play)
     
     #Recibe las posiciones en donde se pueden realizar jugadas
+    board[pos[0]][pos[1]]= 0
     possibleMove = possibleMoves(board)
     #Max
     if(play):
