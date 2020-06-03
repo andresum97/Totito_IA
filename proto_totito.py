@@ -15,7 +15,7 @@ def possibleMoves(board):
 
 #Metodo para calcular Heuristica, basado en el contador de puntos del arbitro del server
 #y revisa la cantidad de cuadros, antes y luego de realizar una jugada y muestra los puntos
-#que pueden ser 0,+-1,+-2. La heuristica se basa en la cantidad de puntos realizados en la jugada
+#que pueden ser 0,+-1,+-2. La heuristica se basa en la cantidad de cuadros que cambian luego de una jugadas
 def heuristica(boardOriginal,move,playerN, player):
     board = list(map(list,boardOriginal))
     EMPTY = 99
@@ -63,7 +63,7 @@ def heuristica(boardOriginal,move,playerN, player):
 
     return resultado
 
-#Algoritmo de minimax con alpha,beta y lookahead de 2
+#Algoritmo de minimax con alpha,beta y lookahead de 2. Basado en algoritmo del video Algorithms Explain - minimax and alpha-beta pruning
 def minimax(board,pos,depth,play,myId,alpha,beta):
     #Verificacion de si esta jugando max o min, (yo o el contrincante)
     if(play):
@@ -102,13 +102,13 @@ def minimax(board,pos,depth,play,myId,alpha,beta):
         return worstScore
                     
 #Metodo que obtiene las mejores jugadas y elige una de forma aleatoria
-def bestMove(board,myId,lookahead):
+def bestMove(board,myId):
     bestScore = -math.inf
     possibleM = []
 
     possible = possibleMoves(board)
     for movimiento in possible:
-        score = minimax(board, movimiento, int(lookahead), False, int(myId), -math.inf, math.inf)
+        score = minimax(board, movimiento,2, False, int(myId), -math.inf, math.inf)
 
         if score > bestScore:
             bestScore = score
@@ -201,7 +201,7 @@ def ready(server):
        infoGame.openent_turn_id = 1
 
     print(humanBoard(server['board']))
-    move = bestMove(infoGame.board, infoGame.player_turn_id,2)
+    move = bestMove(infoGame.board, infoGame.player_turn_id)
     movement = [move[0],move[1]]
     print("Jugada: "+str(movement))
     
